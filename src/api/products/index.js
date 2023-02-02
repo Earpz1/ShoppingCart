@@ -1,6 +1,7 @@
 import express from 'express'
 import productModel from './model.js'
 import { Op } from 'sequelize'
+import createHttpError from 'http-errors'
 
 const productRouter = express.Router()
 
@@ -20,7 +21,12 @@ productRouter.get('/:productID', async (request, response, next) => {
     if (product) {
       response.status(200).send(product)
     } else {
-      next(error)
+      next(
+        createHttpError(
+          404,
+          `There was no product with the id ${request.params.productID}`,
+        ),
+      )
     }
   } catch (error) {
     next(error)
@@ -76,7 +82,7 @@ productRouter.get('/', async (request, response, next) => {
 
     const products = await productModel.findAll({
       where: { ...query },
-      attributes: ['name', 'price', 'category'],
+      attributes: ['id', 'name', 'price', 'category'],
     })
     response.send(products)
   } catch (error) {

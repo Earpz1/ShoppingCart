@@ -1,7 +1,8 @@
 import express from 'express'
 import cors from 'cors'
 import { dbConnect, syncModels } from './db.js'
-import productRouter from '../api/products/index.js'
+import productRouter from '../src/api/products/index.js'
+import { notFoundError } from './errorHandling.js'
 
 const server = express()
 const port = process.env.PORT
@@ -9,7 +10,11 @@ const port = process.env.PORT
 server.use(cors())
 server.use(express.json())
 
+//End points
 server.use('/products', productRouter)
+
+//Error Handlers
+server.use(notFoundError)
 
 await dbConnect()
 await syncModels()
