@@ -12,6 +12,7 @@ const categoryModel = sequelize.define(
     categoryName: {
       type: DataTypes.STRING,
       unique: true,
+      allowNull: false,
     },
   },
   {

@@ -84,14 +84,8 @@ productRouter.get('/', async (request, response, next) => {
 
     const products = await productModel.findAll({
       where: { ...query },
-      include: [
-        {
-          model: categoryModel,
-          attributes: ['categoryName'],
-        },
-      ],
 
-      attributes: ['id', 'name', 'price', 'categoryId'],
+      attributes: ['id', 'name', 'price'],
     })
     response.send(products)
   } catch (error) {

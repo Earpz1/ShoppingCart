@@ -4,7 +4,7 @@ import categoryModel from '../category/model.js'
 import ProductCategoryModel from './productCategoryModel.js'
 
 const productModel = sequelize.define(
-  'products',
+  'product',
   {
     id: {
       type: DataTypes.UUID,
@@ -13,7 +13,6 @@ const productModel = sequelize.define(
     },
     name: {
       type: DataTypes.STRING,
-      unique: true,
     },
     description: {
       type: DataTypes.TEXT,
@@ -31,12 +30,11 @@ const productModel = sequelize.define(
 )
 
 productModel.belongsToMany(categoryModel, {
-  through: 'productCategory',
-  foreignKey: 'category_id',
+  through: ProductCategoryModel,
 })
+
 categoryModel.belongsToMany(productModel, {
-  through: 'productCategory',
-  foreignKey: 'product_id',
+  through: ProductCategoryModel,
 })
 
 export default productModel
