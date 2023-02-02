@@ -2,6 +2,8 @@ import express from 'express'
 import productModel from './model.js'
 import { Op } from 'sequelize'
 import createHttpError from 'http-errors'
+import categoryModel from '../category/model.js'
+import ProductCategoryModel from './productCategoryModel.js'
 
 const productRouter = express.Router()
 
@@ -82,7 +84,14 @@ productRouter.get('/', async (request, response, next) => {
 
     const products = await productModel.findAll({
       where: { ...query },
-      attributes: ['id', 'name', 'price', 'category'],
+      include: [
+        {
+          model: categoryModel,
+          attributes: ['categoryName'],
+        },
+      ],
+
+      attributes: ['id', 'name', 'price', 'categoryId'],
     })
     response.send(products)
   } catch (error) {
