@@ -17,7 +17,7 @@ const productModel = sequelize.define(
     description: {
       type: DataTypes.TEXT,
     },
-    image: {
+    imageURL: {
       type: DataTypes.STRING,
     },
     price: {
@@ -29,12 +29,7 @@ const productModel = sequelize.define(
   },
 )
 
-productModel.belongsToMany(categoryModel, {
-  through: ProductCategoryModel,
-})
-
-categoryModel.belongsToMany(productModel, {
-  through: ProductCategoryModel,
-})
+categoryModel.belongsToMany(productModel, { through: ProductCategoryModel })
+productModel.belongsToMany(categoryModel, { through: ProductCategoryModel })
 
 export default productModel

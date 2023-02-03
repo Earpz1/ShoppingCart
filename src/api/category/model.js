@@ -9,10 +9,8 @@ const categoryModel = sequelize.define(
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
     },
-    categoryName: {
+    category: {
       type: DataTypes.STRING,
-      unique: true,
-      allowNull: false,
     },
   },
   {

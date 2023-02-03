@@ -4,21 +4,46 @@ import { Op } from 'sequelize'
 import createHttpError from 'http-errors'
 import categoryModel from '../category/model.js'
 import ProductCategoryModel from './productCategoryModel.js'
+import reviewModel from '../reviews/model.js'
 
 const productRouter = express.Router()
+
+//Post a new product
 
 productRouter.post('/', async (request, response, next) => {
   try {
     const { id } = await productModel.create(request.body)
+
+    if (request.body.console) {
+      await ProductCategoryModel.create({
+        categoryId: request.body.console,
+        productId: id,
+      })
+    }
+
     response.status(200).send({ id })
   } catch (error) {
     next(error)
   }
 })
 
+//Get product by ID
+
 productRouter.get('/:productID', async (request, response, next) => {
   try {
-    const product = await productModel.findByPk(request.params.productID)
+    const product = await productModel.findByPk(request.params.productID, {
+      attributes: ['id', 'name', 'description', 'imageURL', 'price'],
+      include: [
+        {
+          model: reviewModel,
+          attributes: ['review', 'rating'],
+        },
+        {
+          model: categoryModel,
+          attributes: { exclude: ['id'] },
+        },
+      ],
+    })
 
     if (product) {
       response.status(200).send(product)
@@ -35,6 +60,8 @@ productRouter.get('/:productID', async (request, response, next) => {
   }
 })
 
+//Delete product by ID
+
 productRouter.delete('/:productID', async (request, response, next) => {
   try {
     const productsDeleted = await productModel.destroy({
@@ -50,6 +77,7 @@ productRouter.delete('/:productID', async (request, response, next) => {
   }
 })
 
+//Edit Product by ID
 productRouter.put('/:productID', async (request, response, next) => {
   try {
     const [numberOfUpdatedRows, updatedRecords] = await productModel.update(
@@ -69,6 +97,8 @@ productRouter.put('/:productID', async (request, response, next) => {
   }
 })
 
+//Get products by filter
+
 productRouter.get('/', async (request, response, next) => {
   try {
     const query = {}
@@ -85,12 +115,76 @@ productRouter.get('/', async (request, response, next) => {
     const products = await productModel.findAll({
       where: { ...query },
 
-      attributes: ['id', 'name', 'price'],
+      attributes: ['id', 'name', 'description', 'imageURL', 'price'],
     })
     response.send(products)
   } catch (error) {
     next(error)
   }
 })
+
+//Get reviews by productID
+
+productRouter.get('/:productID/reviews', async (request, response, next) => {
+  try {
+    const reviews = await productModel.findByPk(request.params.productID, {
+      attributes: {
+        exclude: ['id', 'name', 'description', 'imageURL', 'price'],
+      },
+      include: [
+        {
+          model: reviewModel,
+        },
+      ],
+    })
+    response.status(200).send(reviews)
+  } catch (error) {
+    next(error)
+  }
+})
+
+//Add a new product by supplying the productID and getting the categoryID from the body
+
+productRouter.post(
+  '/:productID/addCategory',
+  async (request, response, next) => {
+    try {
+      const { id } = ProductCategoryModel.create({
+        categoryId: request.body.categoryId,
+        productId: request.params.productID,
+      })
+
+      response.status(200).send(`Category added!`)
+    } catch (error) {
+      next(error)
+    }
+  },
+)
+
+//Delete a category from a product by giving the productID and categoryID
+
+productRouter.delete(
+  '/:productID/removeCategory',
+  async (request, response, next) => {
+    try {
+      const categoryDeleted = await ProductCategoryModel.destroy({
+        where: {
+          [Op.and]: [
+            { categoryId: request.body.categoryId },
+            { productId: request.params.productID },
+          ],
+        },
+      })
+
+      if (categoryDeleted === 1) {
+        response.status(200).send(`Category has been deleted`)
+      } else {
+        next(error)
+      }
+    } catch (error) {
+      next(error)
+    }
+  },
+)
 
 export default productRouter
