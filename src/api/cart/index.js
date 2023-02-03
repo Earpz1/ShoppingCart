@@ -26,7 +26,11 @@ cartRouter.get('/:userId', async (request, response, next) => {
       where: { userId: [request.params.userId] },
       include: [{ model: productModel }],
     })
-    response.status(200).send(cart)
+    let totalPrice = 0
+    cart.forEach((product) => {
+      totalPrice += product.product.price
+    })
+    response.status(200).send({ totalPrice: totalPrice, cart: cart })
   } catch (error) {
     next(error)
   }
