@@ -102,8 +102,6 @@ productRouter.put('/:productID', async (request, response, next) => {
 productRouter.get('/', async (request, response, next) => {
   try {
     const query = {}
-    if (request.query.category)
-      query.category = { [Op.like]: `${request.query.category}%` }
 
     if (request.query.minPrice && request.query.maxPrice)
       query.price = {
@@ -114,7 +112,40 @@ productRouter.get('/', async (request, response, next) => {
 
     const products = await productModel.findAll({
       where: { ...query },
+      include: [
+        {
+          model: categoryModel,
+          attributes: ['category'],
+          where: {
+            ...query.category,
+          },
+        },
+      ],
+      order: [['price', request.query.price]],
+      limit: request.query.limit,
+      attributes: ['id', 'name', 'description', 'imageURL', 'price'],
+    })
+    response.send(products)
+  } catch (error) {
+    next(error)
+  }
+})
 
+//Get products by filter
+
+productRouter.get('/filter/:category', async (request, response, next) => {
+  try {
+    const products = await productModel.findAll({
+      include: [
+        {
+          model: categoryModel,
+          attributes: ['category'],
+          where: {
+            category: { [Op.iLike]: request.params.category },
+          },
+        },
+      ],
+      limit: request.params.limit,
       attributes: ['id', 'name', 'description', 'imageURL', 'price'],
     })
     response.send(products)
